@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/icon" href="favicon.ico">
+    <title>RustFuzz - High-Performance Web Fuzzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #00d4ff;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            background: radial-gradient(circle at center, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #00d4ff, #ff6b6b, #4ecdc4);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            color: #b0b0b0;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #00d4ff;
+            border: 2px solid #00d4ff;
+        }
+
+        .btn-secondary:hover {
+            background: #00d4ff;
+            color: white;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #00d4ff;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+
+        /* Documentation Section */
+        .docs {
+            padding: 5rem 0;
+        }
+
+        .docs-section {
+            margin-bottom: 4rem;
+        }
+
+        .docs-subtitle {
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .docs-subtitle::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(45deg, #00d4ff, #ff6b6b);
+            border-radius: 2px;
+        }
+
+        .docs-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'bash';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #00d4ff;
+            color: black;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .code-block code {
+            color: #00ff88;
+        }
+
+        .install-steps {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .install-steps h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+
+        .install-steps h4 {
+            color: #4ecdc4;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .install-steps ul {
+            padding-left: 1.2rem;
+        }
+
+        .install-steps li {
+            margin-bottom: 0.5rem;
+            color: #d0d0d0;
+        }
+
+        .install-steps code {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .install-steps ol {
+            padding-left: 1.5rem;
+        }
+
+        .install-steps li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .github-link:hover {
+            color: #ff6b6b;
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            animation: slideInLeft 0.8s ease forwards;
+        }
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(50px);
+            animation: slideInRight 0.8s ease forwards;
+        }
+
+        @keyframes slideInRight {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .docs-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Floating particles animation */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">🦀 RustFuzz</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#docs">Documentation</a></li>
+                <li><a href="#github">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="particles" id="particles"></div>
+            <div class="hero-content fade-in">
+                <h1>RustFuzz</h1>
+                <p>High-performance web fuzzer written in Rust</p>
+                <p>Discover hidden files, directories, and vulnerabilities with blazing speed</p>
+                <p style="color: #4ecdc4; font-size: 1.1rem; margin-top: 1rem;">✨ Latest Release: v3.3 with enhanced proxy support and improved diagnostics</p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/martian56/rustfuzz/releases" class="btn btn-primary">Download Now</a>
+                    <a href="#docs" class="btn btn-secondary">View Documentation</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title fade-in">🚀 Powerful Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card slide-in-left">
+                        <div class="feature-icon">⚡</div>
+                        <h3>High Performance</h3>
+                        <p>Async/multithreaded engine for maximum speed. Built with Rust for optimal performance and memory safety.</p>
+                    </div>
+                    <div class="feature-card slide-in-right">
+                        <div class="feature-icon">🌐</div>
+                        <h3>URL & Directory Fuzzing</h3>
+                        <p>Quickly identify hidden endpoints, files, and directories on web servers with customizable wordlists.</p>
+                    </div>
+                    <div class="feature-card slide-in-left">
+                        <div class="feature-icon">🧰</div>
+                        <h3>Flexible & Customizable</h3>
+                        <p>Support for custom headers, cookies, authentication tokens, proxy settings, and configuration files.</p>
+                    </div>
+                    <div class="feature-card slide-in-right">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Modern Security Workflows</h3>
+                        <p>Designed for both bug bounty hunters and blue teams with advanced analysis and export capabilities.</p>
+                    </div>
+                    <div class="feature-card slide-in-left">
+                        <div class="feature-icon">🕷️</div>
+                        <h3>Smart Crawling</h3>
+                        <p>Intelligent crawler to discover more endpoints automatically with depth control and domain restrictions.</p>
+                    </div>
+                    <div class="feature-card slide-in-right">
+                        <div class="feature-icon">📊</div>
+                        <h3>Results Analysis</h3>
+                        <p>Export results in JSON/CSV format and analyze findings with beautiful reporting and statistics.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="docs" class="docs">
+            <div class="container">
+                <h2 class="section-title fade-in">📖 Documentation</h2>
+                
+                <!-- Installation Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">📦 Installation & Setup</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>🚀 Quick Download (Recommended)</h4>
+                                <p>Download pre-built binaries for instant use:</p>
+                                <ul>
+                                    <li><strong>Linux:</strong> rustfuzz-3.3-linux</li>
+                                    <li><strong>Windows:</strong> rustfuzz-3.3-win.exe</li>
+                                    <li><strong>RPM:</strong> rustfuzz-3.3.0-1.x86_64.rpm</li>
+                                    <li><strong>DEB:</strong> rustfuzz_3.3.0-1_amd64.deb</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># Download latest release<br>
+wget https://github.com/martian56/rustfuzz/releases/download/v3.3/rustfuzz-3.3-linux<br>
+chmod +x rustfuzz-3.3-linux<br>
+./rustfuzz-3.3-linux --help<br><br>
+# Or install via package manager<br>
+# Ubuntu/Debian:<br>
+sudo dpkg -i rustfuzz_3.3.0-1_amd64.deb<br><br>
+# RHEL/CentOS/Fedora:<br>
+sudo rpm -i rustfuzz-3.3.0-1.x86_64.rpm</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="docs-content" style="margin-top: 2rem;">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>🔨 Build from Source</h4>
+                                <p>For development or custom builds:</p>
+                                <ul>
+                                    <li>Rust 1.70+ installed</li>
+                                    <li>Cargo package manager</li>
+                                    <li>Git for cloning repository</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># Install Rust (if not already installed)<br>
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh<br><br>
+# Clone and build RustFuzz<br>
+git clone https://github.com/martian56/rustfuzz.git<br>
+cd rustfuzz<br>
+cargo build --release<br><br>
+# Binary will be at ./target/release/rustfuzz</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Latest Release Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">✨ Latest Release - v3.3</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>🚀 What's New in v3.3</h4>
+                                <ul>
+                                    <li><strong>Enhanced Proxy Support:</strong> Full HTTP, HTTPS, and SOCKS5 support</li>
+                                    <li><strong>Better Error Handling:</strong> Clearer error messages and diagnostics</li>
+                                    <li><strong>Config Flexibility:</strong> Improved TOML parsing and CLI overrides</li>
+                                    <li><strong>Bug Fixes:</strong> Fixed proxy configuration and endpoint display issues</li>
+                                    <li><strong>Code Quality:</strong> Refactored URL construction and matcher logic</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># New proxy support examples<br>
+proxy = "http://127.0.0.1:8080"<br>
+proxy = "socks5://proxy.example.com:1080"<br><br>
+# Enhanced error diagnostics<br>
+./rustfuzz -u https://target.com \<br>
+&nbsp;&nbsp;-w wordlist.txt \<br>
+&nbsp;&nbsp;--proxy socks5://proxy:1080</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Start Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">🚀 Quick Start Guide</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Basic Directory Fuzzing</h4>
+                                <p>Start with a simple directory discovery:</p>
+                            </div>
+                            <div class="code-block">
+                                <code>./rustfuzz -u https://target.com/FUZZ \<br>
+&nbsp;&nbsp;-w wordlists/common.txt \<br>
+&nbsp;&nbsp;-t 20</code>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="install-steps">
+                                <h4>With Configuration File</h4>
+                                <p>Use TOML config for complex setups:</p>
+                            </div>
+                            <div class="code-block">
+                                <code>./rustfuzz --config config.toml</code>
+                            </div>
+                            <div class="install-steps">
+                                <h4>Command Line Override</h4>
+                                <p>Override config values:</p>
+                            </div>
+                            <div class="code-block">
+                                <code>./rustfuzz --config config.toml \<br>
+&nbsp;&nbsp;-u https://new-target.com</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">⚙️ Configuration Options</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Core Settings</h4>
+                                <ul>
+                                    <li><strong>url:</strong> Target URL to fuzz</li>
+                                    <li><strong>wordlist:</strong> Path to wordlist file</li>
+                                    <li><strong>threads:</strong> Concurrent threads (default: 40)</li>
+                                    <li><strong>timeout:</strong> Request timeout in seconds</li>
+                                    <li><strong>matcher:</strong> Status codes to match</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># Basic configuration<br>
+url = "https://example.com"<br>
+wordlist = "wordlists/common.txt"<br>
+threads = 40<br>
+timeout = 15<br>
+matcher = "200,301,302,405,500"</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="docs-content" style="margin-top: 2rem;">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Authentication & Headers</h4>
+                                <ul>
+                                    <li><strong>headers:</strong> Custom HTTP headers</li>
+                                    <li><strong>cookies:</strong> Session cookies</li>
+                                    <li><strong>auth_token:</strong> Bearer token authentication</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># Authentication setup<br>
+headers = [<br>
+&nbsp;&nbsp;["User-Agent", "RustFuzz/3.3"],<br>
+&nbsp;&nbsp;["X-API-Key", "your-api-key"],<br>
+&nbsp;&nbsp;["Accept", "application/json"]<br>
+]<br><br>
+cookies = [<br>
+&nbsp;&nbsp;["session", "Session_Key"],<br>
+&nbsp;&nbsp;["auth", "token"]<br>
+]<br><br>
+auth_token = "eyJhbGciOi..."</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Features Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">🔧 Advanced Features</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Proxy & Rate Limiting</h4>
+                                <ul>
+                                    <li><strong>HTTP/HTTPS:</strong> Standard web proxies</li>
+                                    <li><strong>SOCKS5:</strong> SOCKS5 proxy support</li>
+                                    <li><strong>Burp Suite:</strong> Integration ready</li>
+                                    <li><strong>Rate Limiting:</strong> Control request speed</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># Proxy configuration<br>
+proxy = "http://127.0.0.1:8080"<br>
+proxy = "socks5://proxy.example.com:1080"<br><br>
+# Rate limiting (milliseconds)<br>
+rate_limit = 100</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="docs-content" style="margin-top: 2rem;">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Smart Discovery</h4>
+                                <ul>
+                                    <li><strong>Crawling:</strong> Automatic endpoint discovery</li>
+                                    <li><strong>Mutation:</strong> Dynamic payload generation</li>
+                                    <li><strong>OpenAPI:</strong> Parse API specifications</li>
+                                    <li><strong>Payloads:</strong> Custom injection payloads</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># Enable smart crawling<br>
+crawl = true<br><br>
+# Mutation-based fuzzing<br>
+mutate = true<br><br>
+# Custom payloads<br>
+payloads = "payloads/xss.txt"<br><br>
+# OpenAPI parsing<br>
+openapi = "https://api.example.com/openapi.json"</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export & Analysis Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">📊 Results & Analysis</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Export Formats</h4>
+                                <ul>
+                                    <li><strong>JSON:</strong> Structured data export</li>
+                                    <li><strong>CSV:</strong> Spreadsheet compatibility</li>
+                                    <li><strong>Analysis:</strong> Beautiful result summaries</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="code-block">
+                                <code># Export results<br>
+export = "results/output.json"<br>
+export = "results/output.csv"<br><br>
+# Analyze exported results<br>
+./rustfuzz --analyze results.json</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Practical Examples Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">🎯 Practical Examples</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Bug Bounty Hunting</h4>
+                                <p>Comprehensive target reconnaissance:</p>
+                            </div>
+                            <div class="code-block">
+                                <code># Full reconnaissance scan<br>
+./rustfuzz --config bounty.toml \<br>
+&nbsp;&nbsp;--crawl \<br>
+&nbsp;&nbsp;--mutate \<br>
+&nbsp;&nbsp;--export results.json</code>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="install-steps">
+                                <h4>API Testing</h4>
+                                <p>Fuzz REST API endpoints:</p>
+                            </div>
+                            <div class="code-block">
+                                <code># API endpoint fuzzing<br>
+./rustfuzz -u https://api.example.com/v1/FUZZ \<br>
+&nbsp;&nbsp;-w wordlists/api-endpoints.txt \<br>
+&nbsp;&nbsp;--header "Authorization: Bearer token" \<br>
+&nbsp;&nbsp;--matcher "200,201,400,401,403"</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="docs-content" style="margin-top: 2rem;">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Penetration Testing</h4>
+                                <p>Professional security assessment:</p>
+                            </div>
+                            <div class="code-block">
+                                <code># Professional pentest setup<br>
+./rustfuzz --config pentest.toml \<br>
+&nbsp;&nbsp;--proxy http://127.0.0.1:8080 \<br>
+&nbsp;&nbsp;--rate-limit 50 \<br>
+&nbsp;&nbsp;--export pentest-results.json</code>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="install-steps">
+                                <h4>Asset Discovery</h4>
+                                <p>Map web application structure:</p>
+                            </div>
+                            <div class="code-block">
+                                <code># Asset discovery<br>
+./rustfuzz -u https://target.com \<br>
+&nbsp;&nbsp;--crawl \<br>
+&nbsp;&nbsp;-w wordlists/directories.txt \<br>
+&nbsp;&nbsp;--matcher "200,301,302" \<br>
+&nbsp;&nbsp;--export assets.json</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Command Reference Section -->
+                <div class="docs-section">
+                    <h3 class="docs-subtitle fade-in">📋 Command Line Reference</h3>
+                    <div class="docs-content">
+                        <div class="slide-in-left">
+                            <div class="install-steps">
+                                <h4>Basic Options</h4>
+                                <ul>
+                                    <li><code>-u, --url</code> Target URL</li>
+                                    <li><code>-w, --wordlist</code> Wordlist file</li>
+                                    <li><code>-t, --threads</code> Thread count</li>
+                                    <li><code>-T, --timeout</code> Request timeout</li>
+                                    <li><code>-m, --matcher</code> Status codes</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="slide-in-right">
+                            <div class="install-steps">
+                                <h4>Advanced Options</h4>
+                                <ul>
+                                    <li><code>--config</code> Configuration file</li>
+                                    <li><code>--proxy</code> Proxy server</li>
+                                    <li><code>--crawl</code> Enable crawling</li>
+                                    <li><code>--mutate</code> Mutation fuzzing</li>
+                                    <li><code>--export</code> Export results</li>
+                                    <li><code>--analyze</code> Analyze results</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="github">
+        <div class="container">
+            <a href="https://github.com/martian56/rustfuzz" class="github-link">
+                <span>🐙</span>
+                <span>View on GitHub</span>
+            </a>
+            <p>Built with ❤️ by <strong>martian56</strong></p>
+            <p>Licensed under GNU General Public License</p>
+            <p style="margin-top: 1rem;">
+                <a href="https://github.com/martian56/rustfuzz/releases" class="btn btn-primary">Download Latest Release</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = '0s';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            
+            const animatedElements = document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right');
+            animatedElements.forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
